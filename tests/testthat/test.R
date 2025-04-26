@@ -9,7 +9,6 @@ test_that("Multi View decomposition simulation runs", {
   ICcorr<- readRDS(file.path(data_path, "ICcorr.rds"))
   S_x <- readRDS(file.path(data_path, "S_xreal.rds"))
   S_y <- readRDS(file.path(data_path, "S_yreal.rds"))
-  n = 100
   noise_level = 0.01
   correlation_level = 0.4
   sample1 <- sample(1:237, n)
