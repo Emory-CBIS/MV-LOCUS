@@ -128,87 +128,147 @@ calculate_bic(Y, model)
 
 ## IV. A Simulation Example
 
-In this section, we provide a toy example to demonstrate the implementation of the package. We generated toy example data **X**, **Y**, and **z** based on  estimated lantent connectivity traits from real brain connectivity and real clinical subscale dataset on cognition. 
-Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $node \times node$, where $node = 264$ is the number of nodes.   The input $X$ matrix would be of dimension $n \times p$, where $n = 300$ subjects and $p = V(V-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $node \times node$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **X**. Similarly, **Y** is a matrix of subscale scores 
+In this section, we provide a simulation example in our Simulation scenario III to demonstrate the implementation of the package. We generated toy example data **Y** based on  estimated lantent connectivity traits from real brain connectivity. 
+Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $node \times node$, where $V = 264$ is the number of nodes.   The input $Y$ matrix would be of dimension $n \times p$, where $n = 100$ subjects and $p = V(V-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $V \times V$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **Y**. 
 
+### Data Generation
 ``` r
 # library 
-library(locusCCA.CVRtesting)
-library(MASS)  # For ginv() function in data generating only
-# generate the toy example data 
-S_real_agg <- readRDS(system.file("data", "S_real_agg.rds", package = "locusCCA.CVRtesting"))
-  original_Y <- readRDS(system.file("data", "original_Y.rds", package = "locusCCA.CVRtesting"))
+library(MultiView.LOCUS)
 
-# Define parameters
-n <- 300
-q <- 10
-p <- ncol(S_real_agg)
-m <- 6
-node <- 264
-# Simulate X and Y using known structures
-# Generate synthetic signals based on the real dataset
-U <- t(S_real_agg[ 1:m,]) / 1000
-sample1 <- sample(2:13, q)
-eigen_Y <- eigen(t(original_Y[, sample1]) %*% original_Y[, sample1])
-V <- eigen_Y$vectors[ sample(1:10, q),sample(1:10, m)]
+# generate the data 
+data_path <- system.file("data", package = "MultiView.LOCUS")
+ICcorr<- readRDS(file.path(data_path, "ICcorr.rds"))
+S_x <- readRDS(file.path(data_path, "S_xreal.rds"))
+S_y <- readRDS(file.path(data_path, "S_yreal.rds"))
+noise_level = 0.01
+correlation_level = 0.4
+sample1 <- sample(1:237, 100)
+mixing_cor_commonx <- t(ICcorr$M[sample1, c(5, 6)]) / apply(ICcorr$M[sample1, c(5, 6)], 2, sd)
+mixing_cor_commony <- mixing_cor_commonx + matrix(rnorm(200, 0, sqrt(1 / correlation_level^2 - 1)), nrow = 2)
 
-# Simulate X, Y, and z using known structures
-set.seed(111)
-fx <- matrix(rnorm(n * m, 0, 1), nrow = n)
-fy <- fx + matrix(rnorm(n * m, 0, 0.6), nrow = n)
-X <- 500 * fx[, 1:m] %*% (ginv(U)) + matrix(rnorm(n * p, 0, 0.01), nrow = n)
-Y <- fy[, 1:m] %*% ginv(V) + matrix(rnorm(n * q, 0, 0.01), nrow = n)
-weights = rnorm(2,1,0.1)
-component = sample(1:6,2)
-beta =2000*apply((U[,component] %*% diag(weights)), 1, sum)
-z = X %*% beta + rnorm(n,sd = 0.1)
+mixing_x <- t(rbind(mixing_cor_commonx, t(ICcorr$M[sample1, 8:9])))
+mixing_y <- t(rbind(mixing_cor_commony, t(ICcorr$M[sample1, 10:11])))
 
+noise <- noise_level
+Data_x <- mixing_x %*% S_x + matrix(rnorm(264 * 263 / 2 * 100, sd = noise), nrow = 100)
+Data_y <- mixing_y %*% S_y + matrix(rnorm(264 * 263 / 2 * 100, sd = noise), nrow = 100)
   
 # check the dimension
-dim(X)
-dim(Y)
+dim(Data_x)
+dim(Data_y)
 ```
 
-We propose to select the number of canonical correlation components  $m$  based on the  number of PCs needed to explain 95% variance of **Y**.
+### Parameter Selection.
 
+#### Component numbers
+We propose to select the number of  components  $q$ and $q_k$ based on the connICA + dual regression
 ```r
-determine_pca_components <- function(Y, variance_threshold = 0.95) {
-  # Perform PCA
-  pca_result <- prcomp(Y, center = TRUE, scale. = TRUE)
+# Step 1: Select Common Components
+select_common_components <- function(Y_list, q_candidates, similarity_measure = "correlation") {
+  # Inputs:
+  # - Y_list: list of (n x p) matrices (one per view)
+  # - q_candidates: vector of candidate q values (e.g., 5:20)
+  # Output:
+  # - Similarity score per q
   
-  # Calculate proportion of variance explained
-  variance_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+  Y_agg <- do.call(rbind, lapply(Y_list, t))
+  similarity_scores <- numeric(length(q_candidates))
   
-  # Compute cumulative variance explained
-  cumulative_variance <- cumsum(variance_explained)
+  for (i in seq_along(q_candidates)) {
+    q <- q_candidates[i]
+    conn_joint <- icaimax(Y_agg, center = TRUE, nc = q)
+    S_agg <- conn_joint$S
+    
+    similarities <- c()
+    for (k in seq_along(Y_list)) {
+      A_k <- t(Y_list[[k]]) %*% S_agg %*% solve(t(S_agg) %*% S_agg)
+      S_k <- solve(t(A_k) %*% A_k) %*% t(A_k) %*% t(Y_list[[k]])
+      similarities <- c(similarities, mean(diag(abs(cor(t(S_k))))))
+    }
+    similarity_scores[i] <- mean(similarities)
+  }
   
-  # Find the number of components needed
-  num_components <- min(which(cumulative_variance >= variance_threshold))
-  
-  return(list(num_components = num_components,
-              cumulative_variance = cumulative_variance))
+  return(data.frame(q = q_candidates, similarity = similarity_scores))
 }
-determine_pca_components(Y)
+# Step 2: Select View-Specific Components
+select_view_specific_components <- function(Y_list, S_agg, view_indices, threshold = 0.05) {
+  # Inputs:
+  # - Y_list: list of (n x p) matrices
+  # - S_agg: common components matrix
+  # - view_indices: vector 1...K for the views
+  # Output:
+  # - Number of view-specific components per view
+  
+  view_specific_counts <- numeric(length(Y_list))
+  
+  for (k in view_indices) {
+    A_k <- t(Y_list[[k]]) %*% S_agg %*% solve(t(S_agg) %*% S_agg)
+    residual_k <- t(Y_list[[k]]) - S_agg %*% t(A_k)
+    
+    ic_anchor <- icaimax(residual_k, center = TRUE, nc = 15) # try 15 residual components
+    prominence <- apply(abs(ic_anchor$M), 2, mean)
+    
+    view_specific_counts[k] <- sum(prominence > threshold)
+    view_specific_counts[k] <- max(1, view_specific_counts[k]) # force at least 1
+  }
+  
+  return(view_specific_counts)
+}
 ```
 
-Next, we proceed to use the BIC-type criterion to select the hyperparameters `rho`. In this toy example, we  explore various values for $\rho$ to observe their impact on the BIC value. We recommend initially considering the range $seq(0, 0.05, 0.005)$ to evaluate the BIC.
+#### regularization
+Next, we proceed to use the BIC-type criterion to select the hyperparameters `phi` and `psi`. In this toy example, we  explore various value combinations to observe their impact on the BIC value. We recommend initially considering the range $seq(0, 1, 0.1)$ to evaluate the BIC.
 
 ``` r
-# bic selection
-rho_seq = seq(0, 0.05, 0.005)
-BIC_list = c()
-for (rho in rho_seq) {
-    result_bic = Locus_CCA(X, Y, node = node, m = m, rho =rho,
-                      penalt = "L1", proportion = 0.95,
-                      silent = FALSE, tol = 1e-3)
-  BIC_list = c(BIC_list,BIC_cal(X,Y,result_bic$U,result_bic$V))}
-rho = rho_seq(which.min(BIC_list))
+# BIC-based selection of phi and psi
+
+# Define candidate grids
+phi_seq <- seq(0.5, 3, by = 0.5)  # for example, sparsity strength
+psi_seq <- seq(0.1, 2, by = 0.2)  # coupling strength across views
+
+# Initialize storage
+BIC_matrix <- matrix(NA, nrow = length(phi_seq), ncol = length(psi_seq),
+                     dimnames = list(paste0("phi=", phi_seq), paste0("psi=", psi_seq)))
+
+# Loop over all (phi, psi) combinations
+for (i in seq_along(phi_seq)) {
+  for (j in seq_along(psi_seq)) {
+    cat("Running phi =", phi_seq[i], "and psi =", psi_seq[j], "\n")
+    
+    # Fit model with current (phi, psi)
+    result_bic <- multi_view_decomposition(
+      Y = list(Data_x, Data_y),
+      q_common = 2,
+      q = c(2, 2),
+      V = 264,
+      penalty = "SCAD",
+      phi = phi_seq[i],
+      psi = psi_seq[j],
+      gamma = 2.1,
+      rho = 0.95,
+      espli1 = 1e-3,
+      espli2 = 1e-3,
+      MaxIteration = 500
+    )
+    
+    # Calculate BIC
+    bic_values <- calculate_bic(Y = list(Data_x, Data_y), res = result_bic)
+    BIC_matrix[i, j] <- sum(bic_values)  # or mean(bic_values), depending on your preference
+  }
+}
+
+# Find optimal (phi, psi) combination
+optimal_indices <- which(BIC_matrix == min(BIC_matrix, na.rm = TRUE), arr.ind = TRUE)
+optimal_phi <- phi_seq[optimal_indices[1]]
+optimal_psi <- psi_seq[optimal_indices[2]]
+
+cat("Selected phi =", optimal_phi, "and psi =", optimal_psi, "\n")
 ```
 
+It is important to note that the procedures for selecting the number of components and tuning regularization parameters provide useful guidance but should not be regarded as definitive. Although criteria such as connICA + dual regression and BIC offer valuable insights, the choices may not always be straightforward or fully reliable based solely on these automated metrics. In practice, we recommend that users also consider empirical validation, reproducibility, and neuroscience interpretability when finalizing the number of components and tuning parameters. Supplementary strategies, such as inspecting sparsity levels or evaluating biological relevance of extracted traits, are encouraged to complement the data-driven selection.
 
-It is worth noting that the BIC criterion serves as a valuable guide in selecting the tuning the parameters $\rho$. However, the choice may not always be straightforward solely based on BIC in practice. Therefore, besides the BIC criterion, users can also employ supplementary selection strategies, such as specifying tuning parameters based on the desired sparsity level and the neuroscience interpretations they aim to achieve in the extracted connectivity traits.
-
-
+#### Application to the data
 
 Next, we perform the Locus-CCA using the parameters we have just selected.
 
