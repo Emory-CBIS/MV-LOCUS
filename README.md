@@ -24,7 +24,7 @@ library(MultiView.LOCUS)
 ###  MultiView.LOCUS Method
 MultiView.LOCUS (** Multi-View Low-rank Decomposition of Brain Connectivity Matrices with Universal Sparsity by Canonical Correlation Analysis**) is a specialized form of Blind Source Separation designed explicitly for Multi-View brain connectivity data. The method uses a low-rank decomposition combined with sparsity-inducing penalties, enabling it to identify robust, interpretable connectivity patterns to each view.
 
-Formally, Locus-CCA identifies $q_k$ latent source **S^{(k)}** of each view $k$:
+Formally, Locus-CCA identifies $q_k$ latent source **$S^{(k)}$** of each view $k$:
 
 <img src="fig/objective.png" width="650" align="center"/>
 
