@@ -274,7 +274,7 @@ cat("Selected phi =", optimal_phi, "and psi =", optimal_psi, "\n")
 
 It is important to note that the procedures for selecting the number of components and tuning regularization parameters provide useful guidance but should not be regarded as definitive. Although criteria such as connICA + dual regression and BIC offer valuable insights, the choices may not always be straightforward or fully reliable based solely on these automated metrics. In practice, we recommend that users also consider empirical validation, reproducibility, and neuroscience interpretability when finalizing the number of components and tuning parameters. Supplementary strategies, such as inspecting sparsity levels or evaluating biological relevance of extracted traits, are encouraged to complement the data-driven selection.
 
-#### Application to the data
+### Application to the data
 
 Next, we perform the Multi-View LOCUS using the parameters we just selected (example).
 
