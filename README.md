@@ -21,10 +21,10 @@ library(MultiView.LOCUS)
 
 ## II. Method
 
-###  Locus-CCA Method
-Locus-CCA (**Low-rank Characterization of Brain Connectivity Matrices with Universal Sparsity by Canonical Correlation Analysis**) is a specialized form of Canonical Correlation Analysis designed explicitly for brain connectivity data. The method uses a low-rank decomposition combined with sparsity-inducing penalties, enabling it to identify robust, interpretable connectivity patterns associated with clinical or cognitive variables. 
+###  MultiView.LOCUS Method
+MultiView.LOCUS (** Multi-View Low-rank Decomposition of Brain Connectivity Matrices with Universal Sparsity by Canonical Correlation Analysis**) is a specialized form of Blind Source Separation designed explicitly for Multi-View brain connectivity data. The method uses a low-rank decomposition combined with sparsity-inducing penalties, enabling it to identify robust, interpretable connectivity patterns to each view.
 
-Formally, Locus-CCA identifies $m$  canonical directions  𝐔 and 𝐕 by solving:
+Formally, Locus-CCA identifies $q_k$ latent source **S^{(k)}** of each view $k$:
 
 <img src="fig/objective.png" width="650" align="center"/>
 
