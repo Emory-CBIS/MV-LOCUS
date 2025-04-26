@@ -19,7 +19,7 @@ plot_conn <- function(mat){
   original_label <- tibble(Node = original_label$smithRSN, label = original_label$SmithName)
   
   # Generate plot
- plot_network_heatmap1(3*mat / max(abs(mat)), 
+ plot_network_heatmap1(mat / max(abs(mat)), 
                         network_information = original_label, 
                         network_label_vars = "label", 
                         network_line_thickness = 0.5)
