@@ -9,8 +9,10 @@ test_that("Multi View decomposition simulation runs", {
   ICcorr<- readRDS(file.path(data_path, "ICcorr.rds"))
   S_x <- readRDS(file.path(data_path, "S_xreal.rds"))
   S_y <- readRDS(file.path(data_path, "S_yreal.rds"))
-
-  sample1 <- sample(1:237, 100)
+  n = 100
+  noise_level = 0.01
+  correlation_level = 0.4
+  sample1 <- sample(1:237, n)
   mixing_cor_commonx <- t(ICcorr$M[sample1, c(5, 6)]) / apply(ICcorr$M[sample1, c(5, 6)], 2, sd)
   mixing_cor_commony <- mixing_cor_commonx + matrix(rnorm(200, 0, sqrt(1 / correlation_level^2 - 1)), nrow = 2)
 
