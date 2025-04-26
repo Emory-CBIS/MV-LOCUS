@@ -46,7 +46,7 @@
 multi_view_decomposition <- function(Y, q, q_common, V, MaxIteration=5000, penalty="SCAD", phi = 0.9, psi = 1, gamma =3,
                   espli1=5e-4, espli2=5e-4, rho=0.95, silent=FALSE)
 {
-  eigen_cor    = 0.15
+  eigen_cor    = 0
   # demean the data
   for (i in 1:length(q)){
   Y[[i]] = sweep(Y[[i]],2,apply(Y[[i]],2,mean),"-") }
