@@ -14,7 +14,7 @@ You can easily install `MultiView.LOCUS` from GitHub with:
 ```r
 if (!requireNamespace("devtools", quietly = TRUE))
   install.packages("devtools")
-devtools::install_github("Emory-CBIS/MultiView.LOCUS ")
+devtools::install_github("Emory-CBIS/MultiView.LOCUS")
 library(MultiView.LOCUS)
 ```
 Please also make sure you have dependence "quadprog,
