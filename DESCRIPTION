@@ -1,0 +1,26 @@
+Package: MultiView.LOCUS
+Type: Package
+Title: Multi-View LOCUS of Multi-View Brain Connectomics
+Version: 0.1.0
+Authors@R: person("Guangming", "Yang", email = "gyang52@emory.edu",
+                  role = c("aut", "cre"))
+Description: Implements the Multi-View low-rank decomposition algorithm described
+    in <insert citation>.  Provides SCAD, L1 and hard-threshold penalties.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Depends: R (>= 4.2)
+Imports:
+    quadprog,
+    far,
+    stats,
+    utils,
+    dplyr,
+    MASS,
+    ica,ggplot2,lattice,gridExtra,reshape2,tibble
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+
