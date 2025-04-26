@@ -217,7 +217,7 @@ select_view_specific_components <- function(Y_list, S_agg, view_indices, thresho
 }
 ```
 
-#### regularization
+#### regularization parameters
 Next, we proceed to use the BIC-type criterion to select the hyperparameters `phi` and `psi`. In this toy example, we  explore various value combinations to observe their impact on the BIC value. We recommend initially considering the range $seq(0, 1, 0.1)$ to evaluate the BIC.
 
 ``` r
@@ -270,39 +270,33 @@ It is important to note that the procedures for selecting the number of componen
 
 #### Application to the data
 
-Next, we perform the Locus-CCA using the parameters we have just selected.
+Next, we perform the Multi-View LOCUS using the parameters we just selected (example).
 
 ``` r
-## Run Locus-CCA 
-result <- Locus_CCA(X, Y, node = node, m = m, rho = rho,
-                      penalt = "L1", proportion = 0.95,
-                      silent = FALSE, tol = 1e-3)
-print(dim(result$U)) #p by m
-print(dim(result$V)) #q by m
-print(result$CC) #canonical correlation matrix
+res <- multi_view_decomposition(
+    Y = list(Data_x, Data_y),
+    q_common = 2,
+    q = c(2, 2),
+    V = 264,
+    penalty = "SCAD",
+    phi = 2,
+    psi = 1,
+    gamma = 2.1,
+    rho = 0.95,
+    espli1 = 1e-2,
+    espli2 = 1e-2,
+    MaxIteration = 500
+  )
 ```
-We visualize the canonical direction weights on brain connectivity  based on the Power's atlas. Please note that the visualization code is prepared based on the Power's atlas, and please modify as needed if other atlases are used. 
+We visualize the connectivity traits on brain connectivity  based on the Power's atlas. Please note that the visualization code is prepared based on the Power's atlas, and please modify as needed if other atlases are used. 
 
 ```r
-plots <- lapply(1:m, function(j){
-  conn_matrix <- Ltrinv(result$U[, j], node, FALSE)
-  plot_conn(conn_matrix)
-})
+plot_conn(Ltrinv(res$S[[1]][4,],264,F)) # 4th trait for View I 
 
-combined_plot <- grid.arrange(grobs = plots, ncol = 3, nrow = 2)
-
-ggsave("combined_plot_with_margin.png", combined_plot,
-       width = 15, height = 10,
-       units = "in", dpi = 300, limitsize = FALSE)
 
 ```
+
+Example outputed components of previous model
 <img src="fig/combined_plot_with_margin.png" width="650" align="center"/>
 
 
-The CVR testing procedure is then implemented to evaluate the significance of each canonical variants in characterizing the overall response **z**, which gives T_stats of m canonical components. 
-
-## Run CVR testing 
-```r
-T_stats <- CVR_testing(result$U, X, z)
-p.adjust(2*(1-pnorm(abs(T_stats))),,method='fdr') #adjusted p-values using FDR correction to correct multiple (m) testing.
-```
