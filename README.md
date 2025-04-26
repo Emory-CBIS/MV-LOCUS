@@ -26,8 +26,8 @@ MultiView.LOCUS (** Multi-View Low-rank Decomposition of Brain Connectivity Matr
 
 Formally, Locus-CCA identifies $q_k$ latent source **$S^{(k)}$** of each view $k$:
 
-<img src="fig/objective.png" width="650" align="center"/>
-
+<img src="fig/decomp" width="650" align="center"/>
+<img src="fig/source" width="650" align="center"/>
 where:
 
 - **X** is an $n \times p$ stacked brain connectivity data matrix, where $p = node(*node-1)/2$ represents the length of the vectorized upper triangle  of connectivity matrix of size $node \times node$.
