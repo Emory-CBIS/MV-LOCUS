@@ -28,14 +28,7 @@ Formally, Locus-CCA identifies $q_k$ latent source **$S^{(k)}$** of each view $k
 
 <img src="Fig/decomp.png" width="650" align="center"/>
 <img src="Fig/sources.png" width="650" align="center"/>
-where:
 
-- **X** is an $n \times p$ stacked brain connectivity data matrix, where $p = node(*node-1)/2$ represents the length of the vectorized upper triangle  of connectivity matrix of size $node \times node$.
-- **Y** is an $n \times q$ matrix of clinical or cognitive variables.
-- 𝐔 and 𝐕 are canonical direction weight matrices for connectivity and clinical variables, with dimensions $p \times m$ and $q \times m$ respectively.
-- **𝐉ⱼ** and **Dⱼ** are low rank parameters, with dimensions $p \times R_j$ and $R_j \times R_j$ respectively. $R_j$ is latent rank of $j$ th canonical direction on brain connectivity.
-- The function $\mathcal{L}(\cdot)$ extracts the vectorized upper-triangular portion from symmetric connectivity trait matrices.
-- $\rho_1$ is the regularization parameters penalizing the sparisty of 𝐔. 
 
 #### Method Highlights
 
@@ -45,108 +38,81 @@ where:
 - **Universal Sparsity Regularization**:  
   Sparsity regularization (L1, Hardthreshold or SCAD penalties) is applied element-wise to canonical weights, ensuring robust and interpretable connectivity patterns that represent meaningful neural circuitry associated with clinical or behavioral phenotypes.
 
-- **Canonical Correlation Maximization**:  
-  Canonical directions (**XU**, **YV**) derived from Locus-CCA are optimized to achieve maximum canonical correlation, capturing the strongest possible linear relationships between brain connectivity and clinical/behavioral outcomes.
-
-### CVR Testing Method
-
-Canonical Variate Regression (CVR) Testing is a robust statistical procedure designed to evaluate the significance of canonical directions derived from Locus-CCA in predicting clinical or behavioral outcomes. Specifically, CVR testing assesses whether each identified canonical connectivity pattern (**XU**) significantly contributes to explaining variation in the univariate clinical or behavioral measures (**z**).
-
-Formally, for each canonical direction  $j \leq m$, CVR testing calculates a test statistic $T_j$:
+- **Common versus view-specific sources**:  
+  The common and view-specific sources are considered simutaneously in our model.
 
 
-$$T_j = \frac{\sqrt{n}\mathbf{S}_j}{\sqrt{\mathbf{I}_j}} \xrightarrow{d} N(0,1)$$
-
-*Comprehensive and complete methodological explanations of the CVR Testing framework are described in detail in our accompanying research paper (in preparation).*
-
-
-<!--
-\mathbf{S}_j = \frac{1}{n \hat{\sigma}^2}\left(\mathbf{z}-\hat{\mathbf{z}}\right)^\top\left(\mathbf{f}_j - \hat{\mathbf{f}}_j\right),\quad
-\mathbf{I}_j = \frac{1}{n \hat{\sigma}^2}\left(\|\mathbf{f}_j\|^2 - \mathbf{f}_j^\top\hat{\mathbf{f}}_j\right),
-$$
-
-and
-
-- $$\mathbf{z}$$ is the observed $$n$$-dimensional clinical or behavioral outcome vector.
-- $$\hat{\mathbf{z}}$$ represents predictions from a Lasso regression of $$\mathbf{z}$$ onto the connectivity matrix $$\mathbf{X}$$.
-- $$\hat{\sigma}^2$$ is the estimated residual variance from the Lasso regression.
-- $f_j$ is the $j$ th canonical factor computed as the standardized projection of connectivity matrix onto the canonical direction:  $f_j = {XU_{.j}}$
-- $$\hat{\mathbf{f}}_j$$ represents predictions of $$\mathbf{f}_j$$ obtained by regressing $$\mathbf{f}_j$$ onto the remaining connectivity features ($$\mathbf{X}$$) via a second Lasso regression to control for collinearity among predictors.
--->
-
-
-#### Method Highlights
-
-- **Statistical Significance Testing**:  
-  The CVR testing procedure provides formal hypothesis tests for assessing the statistical significance of each canonical variate, determining whether connectivity patterns identified by Locus-CCA significantly predict clinical or behavioral outcomes.
-
-- **Account for High Dimensionality and Edge Dependence**:  
-  CVR transforms the high-dimensional testing challenge into testing an aggregated scalar statistic, effectively accounting for dependency structures among brain connectivity edges.
-
-- **Reduced Multiple Testing Burden**:  
-  By evaluating canonical variates rather than individual connectivity edges, CVR greatly reduces multiple comparison issues, enhancing statistical power and interpretability of findings.
-
-By integrating Locus-CCA with CVR testing, this approach provides a comprehensive, statistically rigorous framework for linking complex brain connectivity data to meaningful clinical and behavioral phenotypes.
 
 
 ### Functions Overview
 The structure of the package is as follows, and detailed descriptions of the function arguments are provided in the section below:
 
 -   **Main Function:**
-    -   `Locus_CCA`: performs Locus_CCA on brain connectivity and clinical/behavorial variables from the same group of subjects.
-    -  `CVR_testing`: Peforms CVR testing based on the results from Locus_CCA.
+    -   `multi_view_decomposition`: performs Multi-View LOCUS on Multi-View brain connectivity.
 -   **Tuning Parameter Selection:**
-    -   `bic_cal()`: selects the tuning parameters $\rho_1$.
+    -   `calculate_bic`: selects the tuning parameters $\phi$ and $\psi$.
 -   **Helper Functions:**
     -   `Ltrinv` and `Ltrans`: transform the brain connectivity to vectorized upper triangle and transform it back.
-    - `plot_conn`:  plots the canonical weights on brain connectivity in the form of heatmap for adjancency connectivity matrix.
+    -  `plot_conn`:  plots the canonical weights on brain connectivity in the form of heatmap for adjancency connectivity matrix.
+-   **Function called**
+    -  `Locus_preprocess`:  Preprocessing of connectivity data.
+    -  `joint_update_approx`: The  function of fitting Multi-View LOCUS.
+    -  `joint_initial`: Initialization for parameters in our model. 
 ## III. Detailed Descriptions of the Functions
 
 ### 1. Locus_CCA function
 
 ```         
-Locus_CCA(X, Y, node, m, rho, gamma = 2.1,
-                         penalt = 'L1', proportion = 0.9
-                         , silent = FALSE, tol = 1e-3)
+multi_view_decomposition(Y, q, q_common, V, MaxIteration=5000, penalty="SCAD", phi = 0.9, psi = 1, gamma =3,
+                  espli1=5e-4, espli2=5e-4, rho=0.95, silent=FALSE)
 ```
 
--   `X`: Group-level brain connectivity data represented as a matrix of dimension $n \times p$, where $n$ denotes the number of subjects, and $p$ represents the number of edges in the connectivity network. To construct `X` from connectivity matrices, suppose each matrix is a $node \times node$ symmetric matrix. We use the `Ltrans()` function to extract the upper triangular elements of each connectivity matrix and convert them into a row vector of length $p = (node-1)*node/{2}$. We then concatenate these vectors across  subjects to obtain the group connectivity data `X`, which has dimensions $n \times p$.
--   `Y`: Group-level clinical/behavioral subscale scores for the same subjects in `X`, the dimension is $n\times q$.
--   `node`: The number of nodes. Note that $p$ needs to be equal to $(node-1)*node/{2}$.
--   `m`: The number of canonical correlation components to extract.
--   `rho`: A tuning parameter for the element-wise penalty on 𝐔.
--   `gamma`: A tuning parameter only used if  SCAD penalty is used, default to be 2.1.
--   `penalt`: The option for the penalization function for the sparsity regularization for the canonical correlation directions on brain connectivity. Users can choose `"NULL"`,  `"Hardthreshold"`, `"L1"`, or `"SCAD"` (smoothly clipped absolute deviation), introduced by [Fan and Li, 2001](https://www.jstor.org/stable/3085904). Defaults to `"L1"`.
--   `proportion`: A proportional tuning parameter ranging from 0 to 1 to determine the number of ranks for modeling each connectivity trait. The value of `rho` represents the closeness of the connectivity traits estimated with and without the low-rank structure. A higher value of `rho` will lead to a higher rank. Defaults to 0.9.
--  `silent`: If `FALSE`, print out the training progress. Defaults to `FALSE`.
--   `tol`: A number describing the tolerance for change on parameters 𝐔 and 𝐕  .
+Arguments
+- Y: A list of length K (number of views), where each element is an 𝑛×𝑝 matrix of group-level brain connectivity data for a view.
+Each row corresponds to a subject, and each column corresponds to an edge in the connectivity network.
+To construct each matrix in Y from subject-level adjacency matrices (size V×V), use the Ltrans() function to vectorize the upper-triangular elements (excluding the diagonal).
 
-The `Locus_CCA` function serves as the primary function in the algorithm, implementing the novel CCA method for investigating the association between brain network connectivity matrices and clinical/behavioral subscale scores using low-rank structure with uniform sparsity. Users can provide the group-level concatenated connectivity data and clinical/behavioral subscale as input, along with specifying parameters such as the number of connectivity traits to extract, the number of nodes under consideration, etc. The output of the `Locus_CCA` function is a list comprising 4 components:
+- q: A vector of integers of length K. Specifies the number of view-specific connectivity traits to extract for each view.
 
--   `U`: The canonical correlation directions on brain connectivity with  dimension $p \times m$.
--   `V`: The canonical correlation directions on subscale scores with  dimension $q \times m$.
--   `CC`: A m by m matrix. Canonical correlations between the each corresponding projection, i.e the pairwise correlations between columns in $XU$ and $YV$.
--   `R`: A list of rank $R_j$, where `R[j]` contains the rank of the $i$th sub connectivity matrix.
+- q_common: An integer.Specifies the number of shared connectivity traits across all views.
 
-### 2. CVR_testing function
-
-```         
-CVR_testing(U, X, z, lambda1 = NULL, lambda2 = NULL)
-```
-
-- `U`: The canonical correlation directions on brain connectivity with dimension $p \times m$, i.e., `U` from `Locus_CCA`.
-- `X`: Group-level brain connectivity data represented as a matrix of dimension $n \times p$, where $n$ denotes the number of subjects, and $p$ represents the number of edges in the connectivity network.
-- `z`: A numeric response vector (n x 1).
-- `lambda1`: A numeric value for Lasso penalty in coefficients estimation. If `NULL`, it is determined using cross-validation.
-- `lambda2`: A numeric value for constrained optimization in score calculation. If `NULL`, it is  determined by our procedure.
-
-The `CVR_testing` function characterize the significance of each  brain connectivity canonical variant (**XU**) in explaining the one overall disorder or behavior score.  The function takes the arguments including canonical correlation directions on brain connectivity (estimated U from Locus_CCA), the group-level brain connectivity data **X**, and an univariate response (usually overall evaluation, such as ADHD overall score). The function outputs the testing statsitics of CVR testing of all m canonical components. 
-
-- `T_stats`: A length m vector containing the test statistics for each canonical variants of brain connectivity. Each entry  follows a asymptotic normal distribution. 
+- V: An integer. The number of nodes in the brain network.The number of edges 𝑝 should satisfy $V(V-1)/2$
 
 
+- MaxIteration: An integer (default = 5000).  The maximum number of iterations for the decomposition algorithm.
 
-### 3. BIC_cal function
+- penalty: A string specifying the sparsity regularization method for the source traits. Options include:
+
+    -"NULL": No sparsity enforced.
+
+    -"Hardthreshold": Hard-thresholding penalty.
+
+    -"L1": Lasso penalty (elementwise l1-norm).
+
+    -"SCAD": Smoothly Clipped Absolute Deviation penalty (default), introduced by Fan and Li (2001).
+
+- phi: A numeric value (default = 0.9).
+Regularization parameter controlling the strength of the sparsity penalty.
+
+- psi: A numeric value (default = 1).
+A coupling parameter enforcing synergy of shared components across different views.
+
+- gamma: A numeric value (default = 3).
+Used only when penalty = "SCAD".
+Controls the concavity of the SCAD penalty. Must be greater than 2.
+
+- espli1: A numeric value (default = 5e-4).
+Tolerance for convergence based on the change in the mixing matrices.
+
+- espli2: A numeric value (default = 5e-4).
+Tolerance for convergence based on the change in the source traits.
+
+- rho: A numeric value between 0 and 1 (default = 0.95).  A threshold parameter for determining the low-rank structure of the source traits. A higher rho encourages capturing more variance (leading to a higher rank).
+
+- silent: Logical (TRUE or FALSE, default = FALSE). If FALSE, progress messages are printed during model fitting.
+
+
+### 2. BIC_cal function
 
 ```
 BIC_cal(X, Y, U, V)        
