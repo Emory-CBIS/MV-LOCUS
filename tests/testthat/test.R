@@ -5,6 +5,7 @@ library(testthat)
 
 test_that("Multi View decomposition simulation runs", {
   skip_if_not_installed("MultiView.LOCUS")
+  system.file("data", package = "MultiView.LOCUS")
   ICcorr<- readRDS(file.path(data_path, "ICcorr.rds"))
   S_x <- readRDS(file.path(data_path, "S_xreal.rds"))
   S_y <- readRDS(file.path(data_path, "S_yreal.rds"))
