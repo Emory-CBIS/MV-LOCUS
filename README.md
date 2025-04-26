@@ -17,7 +17,13 @@ if (!requireNamespace("devtools", quietly = TRUE))
 devtools::install_github("Emory-CBIS/MultiView.LOCUS ")
 library(MultiView.LOCUS)
 ```
-
+Please also make sure you have dependence "quadprog,
+    far,
+    stats,
+    utils,
+    dplyr,
+    MASS,
+    ica,ggplot2,lattice,gridExtra,reshape2,tibble" 
 
 ## II. Method
 
