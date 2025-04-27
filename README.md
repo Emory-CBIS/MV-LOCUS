@@ -36,7 +36,7 @@ Formally, Locus-CCA identifies $q_k$ latent source **$S^{(k)}$** of each view $k
 <img src="Fig/sources.png" width="650" align="center"/>
 
 
-####Schematic plot
+#### Schematic plot
 <img src="Fig/schematic_plot (1).png" width="800" align="center"/>
 
 #### Method Highlights
