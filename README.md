@@ -297,12 +297,39 @@ res <- multi_view_decomposition(
 We visualize the connectivity traits on brain connectivity  based on the Power's atlas. Please note that the visualization code is prepared based on the Power's atlas, and please modify as needed if other atlases are used. 
 
 ```r
-plot_conn(Ltrinv(res$S[[1]][4,],264,F)) # 4th trait for View I 
+library(gridExtra)  # for arranging plots
 
+# Helper: plot a connectivity matrix from vector
+plot_conn_wrapper <- function(vec, V) {
+  mat <- Ltrinv(vec, V, d = FALSE)
+  plot_conn(mat)
+}
 
+# Initialize a list to hold plots
+plot_list <- list()
+
+# View 1
+for (i in 1:(4)) {
+  plot_list[[i]] <- plot_conn_wrapper(res$S_sparse[[1]][i, ], 264)
+}
+
+# View 2
+for (i in 1:(4)) {
+  plot_list[[i + 4]] <- plot_conn_wrapper(res$S_sparse[[2]][i, ], 264)
+}
+
+# Arrange the plots: 2 rows × 4 columns
+combined_plot = grid.arrange(grobs = plot_list, nrow = 2, ncol = 4)
+ggsave(
+  filename = "multi_view_connectivity.png",
+  plot = combined_plot,
+  width = 4 * 4,   # 4 plots wide × 4 inches each
+  height = 2 * 4,  # 2 rows × 4 inches each
+  dpi = 300
+)
 ```
 
-Example outputed components of previous model
-<img src="fig/combined_plot_with_margin.png" width="650" align="center"/>
+Example outputed components, the first second rows represent the view 1 and view 2
+<img src="Fig/multi_view_connectivity.png" width="650" align="center"/>
 
 
