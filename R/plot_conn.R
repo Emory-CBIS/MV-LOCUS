@@ -11,12 +11,23 @@
 #' @export
 plot_conn <- function(mat){
   # Find CSV file inside installed package
-  csv_path <- system.file("extdata", "power264_sorted_node_information.csv", package = "locusCCA.CVRtesting")
+csv_path <- system.file("extdata", "power264_sorted_node_information.csv", package = "locusCCA.CVRtesting")
   
   # Read CSV dynamically
   label <- read.csv(csv_path)
   original_label <- label[order(label$Original_ROI), ]
   original_label <- tibble(Node = original_label$smithRSN, label = original_label$SmithName)
+original_label$label[original_label$label=="Occ. Pole"]= 'Op Vis'
+original_label$label[original_label$label=="Unknown"]= 'Other'
+original_label$label[original_label$label=="Executive Control"]= 'EC'
+original_label$label[original_label$label=="Auditory"]= 'Aud'
+original_label$label[original_label$label=="Default Mode"]= 'DMN'
+original_label$label[original_label$label=="Cerebellum"]= 'CB'
+#original_label$label[original_label$label=="MR"]= 'DMN'
+original_label$label[original_label$label=="Unknown"]= 'Other'
+original_label$label[original_label$label=="Subcortical"]= 'SC'
+original_label$label[original_label$label%in%c("DMN R","DMN P","DMN F","DMN L")]= 'DMN'
+  # Generate plot
   
   # Generate plot
  plot_network_heatmap1(mat / max(abs(mat)), 
