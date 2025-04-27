@@ -11,7 +11,7 @@
 #' @export
 plot_conn <- function(mat){
   # Find CSV file inside installed package
-csv_path <- system.file("extdata", "power264_sorted_node_information.csv", package = "locusCCA.CVRtesting")
+csv_path <- system.file("extdata", "power264_sorted_node_information.csv", package = "MultiView.LOCUS")
   
   # Read CSV dynamically
   label <- read.csv(csv_path)
