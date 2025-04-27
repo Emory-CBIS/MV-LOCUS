@@ -330,6 +330,6 @@ combined_plot = grid.arrange(grobs = plot_list, nrow = 2, ncol = 4)
 ```
 
 Example outputed components, the first second rows represent the view 1 and view 2 resepctively. As component number specification, the first two columns represent the common sources, and rest columns represent the view-specific sources. 
-<img src="Fig/multi_view_connectivity.png" width="1000" height="300" align="center"/>
+<img src="Fig/multi_view_connectivity.png" width="1000" height="400" align="center"/>
 
 
