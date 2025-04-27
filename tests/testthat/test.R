@@ -2,7 +2,6 @@ library(MultiView.LOCUS)
 library(testthat)
 
 
-
 test_that("Multi View decomposition simulation runs", {
   skip_if_not_installed("MultiView.LOCUS")
   system.file("data", package = "MultiView.LOCUS")
@@ -37,42 +36,5 @@ test_that("Multi View decomposition simulation runs", {
     espli2 = 1e-2,
     MaxIteration = 500
   )
-
-## Visualization of connectivity traits
-library(gridExtra)  # for arranging plots
-
-# Helper: plot a connectivity matrix from vector
-plot_conn_wrapper <- function(vec, V) {
-  mat <- Ltrinv(vec, V, d = FALSE)
-  plot_conn(mat)
-}
-
-# Initialize a list to hold plots
-plot_list <- list()
-
-# Settings
-V <- 264   # number of nodes
-n_common <- 2   # number of common components
-n_spe <- 2      # number of specific components per view
-
-# View 1
-for (i in 1:(n_common + n_spe)) {
-  plot_list[[i]] <- plot_conn_wrapper(res$S_sparse[[1]][i, ], V)
-}
-
-# View 2
-for (i in 1:(n_common + n_spe)) {
-  plot_list[[i + 4]] <- plot_conn_wrapper(res$S_sparse[[2]][i, ], V)
-}
-
-# Arrange the plots: 2 rows × 4 columns
-combined_plot = grid.arrange(grobs = plot_list, nrow = 2, ncol = 4)
-#ggsave(
-  filename = "multi_view_connectivity.png",
-  plot = combined_plot,
-  width = 4 * 4,   # 4 plots wide × 4 inches each
-  height = 2 * 4,  # 2 rows × 4 inches each
-  dpi = 300
-)
-
+plot_conn(Ltrinv(res$S_sparse[[2]][2,],264,F))
 })
