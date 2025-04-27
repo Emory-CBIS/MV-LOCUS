@@ -32,6 +32,7 @@ MultiView.LOCUS (** Multi-View Low-rank Decomposition of Brain Connectivity Matr
 
 Formally, Locus-CCA identifies $q_k$ latent source **$S^{(k)}$** of each view $k$:
 
+#### Method formulation
 <img src="Fig/decomp.png" width="650" align="center"/>
 <img src="Fig/sources.png" width="650" align="center"/>
 
