@@ -287,30 +287,48 @@ res <- multi_view_decomposition(
 We visualize the connectivity traits on brain connectivity  based on the Power's atlas. Please note that the visualization code is prepared based on the Power's atlas, and please modify as needed if other atlases are used. 
 
 ```r
-library(gridExtra)  # for arranging plots
+library(gridExtra)
+library(grid)
 
-# Helper: plot a connectivity matrix from vector
+# === Same plotting setup as before ===
 plot_conn_wrapper <- function(vec, V) {
   mat <- Ltrinv(vec, V, d = FALSE)
   plot_conn(mat)
 }
 
-# Initialize a list to hold plots
+V <- 264
+n_common <- 2
+n_spe <- 2
 plot_list <- list()
 
-# View 1
-for (i in 1:(4)) {
-  plot_list[[i]] <- plot_conn_wrapper(res$S_sparse[[1]][i, ], 264)
+for (i in 1:(n_common + n_spe)) {
+  plot_list[[i]] <- plot_conn_wrapper(res$S_sparse[[1]][i, ], V)
+}
+for (i in 1:(n_common + n_spe)) {
+  plot_list[[i + 4]] <- plot_conn_wrapper(res$S_sparse[[2]][i, ], V)
 }
 
-# View 2
-for (i in 1:(4)) {
-  plot_list[[i + 4]] <- plot_conn_wrapper(res$S_sparse[[2]][i, ], 264)
-}
+# === Labels ===
+col_titles <- c("Common 1", "Common 2", "Specific 1", "Specific 2")
+col_grobs <- lapply(col_titles, function(title) {
+  textGrob(title, gp = gpar(fontsize = 12, fontface = "bold"))
+})
 
-# Arrange the plots: 2 rows × 4 columns
-combined_plot = grid.arrange(grobs = plot_list, nrow = 2, ncol = 4)
+row_titles <- c("View 1", "View 2")
+row_grobs <- lapply(row_titles, function(title) {
+  textGrob(title, rot = 90, gp = gpar(fontsize = 12, fontface = "bold"))
+})
 
+# === Main plot ===
+plot_grid <- arrangeGrob(grobs = plot_list, nrow = 2, ncol = 4)
+
+# === Assemble with expanded margins ===
+full_plot <- arrangeGrob(
+  plot_grid,
+  left = arrangeGrob(grobs = row_grobs, ncol = 1),
+  bottom = arrangeGrob(grobs = col_grobs, nrow = 1),
+  padding = unit(2, "lines")  # Increase padding here
+)
 ```
 
 Example outputed components, the first second rows represent the view 1 and view 2 resepctively. As in our component number specification, the first two columns represent the common sources, and rest columns represent the view-specific sources. 
