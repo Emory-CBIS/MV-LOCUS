@@ -332,6 +332,6 @@ full_plot <- arrangeGrob(
 ```
 
 Example outputed components, the first second rows represent the view 1 and view 2 resepctively. As in our component number specification, the first two columns represent the common sources, and rest columns represent the view-specific sources. 
-<img src="Fig/multi_view_annotated.png" width="900" height="600" align="center"/>
+<img src="Fig/multi_view_annotated.png" width="1100" height="450" align="center"/>
 
 
