@@ -138,8 +138,8 @@ calculate_bic(Y, model)
 
 ## IV. A Simulation Example
 
-In this section, we provide an example in our Simulation scenario III to demonstrate the implementation of the package. We generated toy example data **Y** based on  estimated lantent connectivity traits from real brain connectivity. 
-Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $V \times V$, where $V = 264$ is the number of nodes.   The input $Y$ matrix would be of dimension $n \times p$, where $n = 100$ subjects and $p = V(V-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $V \times V$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(V-1)V}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **Y**. 
+In this section, we provide an example in our Simulation scenario III to demonstrate the implementation of the package. We generated the example data **Y** based on  estimated lantent connectivity traits from real brain connectivity. 
+Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $V \times V$, where $V = 264$ is the number of nodes.   We have data from two views. For each view, the input $Y^{(k)}$ matrix is of dimension $n \times p$, where $n = 100$ subjects and $p = V(V-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $V \times V$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(V-1)V}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **Y**. 
 
 ### Data loading
 ``` r
@@ -147,8 +147,8 @@ Specifically, we generated connectivity matrices based on the real connectivity 
 library(MultiView.LOCUS)
 
 # Load data in our example_data folder
-Data_x = readRDS('example_data/Data_x.rds')
-Data_y = readRDS('example_data/Data_y.rds')
+Data_x = readRDS('example_data/Data_x.rds') #View 1
+Data_y = readRDS('example_data/Data_y.rds') #View 2
 
 # check the dimension
 dim(Data_x)
