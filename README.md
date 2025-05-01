@@ -155,7 +155,7 @@ dim(Data_x)
 dim(Data_y)
 ```
 
-### Parameter Selection.
+### Parameter Selection. (Optional)
 
 #### Component numbers
 We propose to select the number of  components  $q$ and $q_k$ based on the connICA + dual regression
