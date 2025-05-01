@@ -310,16 +310,10 @@ for (i in 1:(4)) {
 
 # Arrange the plots: 2 rows × 4 columns
 combined_plot = grid.arrange(grobs = plot_list, nrow = 2, ncol = 4)
-#ggsave(
-  filename = "multi_view_connectivity.png",
-  plot = combined_plot,
-  width = 4 * 4,   # 4 plots wide × 4 inches each
-  height = 2 * 4,  # 2 rows × 4 inches each
-  dpi = 300
-)
+
 ```
 
 Example outputed components, the first second rows represent the view 1 and view 2 resepctively. As in our component number specification, the first two columns represent the common sources, and rest columns represent the view-specific sources. 
-<img src="Fig/multi_view_connectivity.png" width="900" height="400" align="center"/>
+<img src="Fig/multi_view_annotated.png" width="900" height="400" align="center"/>
 
 
