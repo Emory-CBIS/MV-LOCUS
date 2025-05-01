@@ -290,7 +290,7 @@ res <- multi_view_decomposition(
     V = 264,
     penalty = "SCAD",
     phi = 2,
-    psi = 1,
+    psi = 0.5,
     gamma = 2.1,
     rho = 0.95,
     espli1 = 1e-2,
