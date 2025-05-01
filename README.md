@@ -138,32 +138,18 @@ calculate_bic(Y, model)
 
 ## IV. A Simulation Example
 
-In this section, we provide a simulation example in our Simulation scenario III to demonstrate the implementation of the package. We generated toy example data **Y** based on  estimated lantent connectivity traits from real brain connectivity. 
+In this section, we provide an example in our Simulation scenario III to demonstrate the implementation of the package. We generated toy example data **Y** based on  estimated lantent connectivity traits from real brain connectivity. 
 Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $V \times V$, where $V = 264$ is the number of nodes.   The input $Y$ matrix would be of dimension $n \times p$, where $n = 100$ subjects and $p = V(V-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $V \times V$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(V-1)V}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **Y**. 
 
-### Data Generation
+### Data loading
 ``` r
 # library 
 library(MultiView.LOCUS)
 
-# generate the data 
-data_path <- system.file("data", package = "MultiView.LOCUS")
-ICcorr<- readRDS(file.path(data_path, "ICcorr.rds"))
-S_x <- readRDS(file.path(data_path, "S_xreal.rds"))
-S_y <- readRDS(file.path(data_path, "S_yreal.rds"))
-noise_level = 0.01
-correlation_level = 0.4
-sample1 <- sample(1:237, 100)
-mixing_cor_commonx <- t(ICcorr$M[sample1, c(5, 6)]) / apply(ICcorr$M[sample1, c(5, 6)], 2, sd)
-mixing_cor_commony <- mixing_cor_commonx + matrix(rnorm(200, 0, sqrt(1 / correlation_level^2 - 1)), nrow = 2)
+# Load data in our example_data folder
+Data_x = readRDS('example_data/Data_x.rds')
+Data_y = readRDS('example_data/Data_y.rds')
 
-mixing_x <- t(rbind(mixing_cor_commonx, t(ICcorr$M[sample1, 8:9])))
-mixing_y <- t(rbind(mixing_cor_commony, t(ICcorr$M[sample1, 10:11])))
-
-noise <- noise_level
-Data_x <- mixing_x %*% S_x + matrix(rnorm(264 * 263 / 2 * 100, sd = noise), nrow = 100)
-Data_y <- mixing_y %*% S_y + matrix(rnorm(264 * 263 / 2 * 100, sd = noise), nrow = 100)
-  
 # check the dimension
 dim(Data_x)
 dim(Data_y)
